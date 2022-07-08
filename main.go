@@ -144,6 +144,47 @@ func ExampleTbf() {
 	}
 }
 
+func getDefaultNIC() string {
+	file, err := os.Open(file)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer file.Close()
+
+	var eth0 string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+
+		// jump to line containing the gateway address
+		for i := 0; i < line; i++ {
+			scanner.Scan()
+		}
+
+		// get field containing gateway address
+		tokens := strings.Split(scanner.Text(), sep)
+		eth0 = tokens[0]
+		fmt.Println(tokens[0])
+		gatewayHex := "0x" + tokens[field]
+
+		// cast hex address to uint32
+		d, _ := strconv.ParseInt(gatewayHex, 0, 64)
+		d32 := uint32(d)
+
+		// make net.IP address from uint32
+		ipd32 := make(net.IP, 4)
+		binary.LittleEndian.PutUint32(ipd32, d32)
+		fmt.Printf("%T --> %[1]v\n", ipd32)
+
+		// format net.IP to dotted ipV4 string
+		ip := net.IP(ipd32).String()
+		fmt.Printf("%T --> %[1]v\n", ip)
+
+		// exit scanner
+		break
+	}
+	return eth0
+}
+
 func main() {
 	rtnl, err := tc.Open(&tc.Config{})
 	if err != nil {
@@ -177,40 +218,5 @@ func main() {
 	// 	fmt.Println("Flags are", rifs.Flags.String())
 	// }
 	fmt.Println(getRoutedInterface())
-
-	file, err := os.Open(file)
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-
-		// jump to line containing the agteway address
-		for i := 0; i < line; i++ {
-			scanner.Scan()
-		}
-
-		// get field containing gateway address
-		tokens := strings.Split(scanner.Text(), sep)
-		fmt.Println(tokens[0])
-		gatewayHex := "0x" + tokens[field]
-
-		// cast hex address to uint32
-		d, _ := strconv.ParseInt(gatewayHex, 0, 64)
-		d32 := uint32(d)
-
-		// make net.IP address from uint32
-		ipd32 := make(net.IP, 4)
-		binary.LittleEndian.PutUint32(ipd32, d32)
-		fmt.Printf("%T --> %[1]v\n", ipd32)
-
-		// format net.IP to dotted ipV4 string
-		ip := net.IP(ipd32).String()
-		fmt.Printf("%T --> %[1]v\n", ip)
-
-		// exit scanner
-		break
-	}
+	fmt.Println(getDefaultNIC())
 }
