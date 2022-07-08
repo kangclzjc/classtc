@@ -1,0 +1,36 @@
+# github.com/florianl/go-tc v0.4.1
+## explicit; go 1.13
+github.com/florianl/go-tc
+github.com/florianl/go-tc/core
+github.com/florianl/go-tc/internal/unix
+# github.com/google/go-cmp v0.5.7
+## explicit; go 1.11
+github.com/google/go-cmp/cmp
+github.com/google/go-cmp/cmp/internal/diff
+github.com/google/go-cmp/cmp/internal/flags
+github.com/google/go-cmp/cmp/internal/function
+github.com/google/go-cmp/cmp/internal/value
+# github.com/josharian/native v1.0.0
+## explicit; go 1.13
+github.com/josharian/native
+# github.com/jsimonetti/rtnetlink v0.0.0-20211022192332-93da33804786
+## explicit; go 1.12
+github.com/jsimonetti/rtnetlink
+github.com/jsimonetti/rtnetlink/internal/unix
+# github.com/mdlayher/netlink v1.6.0
+## explicit; go 1.13
+github.com/mdlayher/netlink
+github.com/mdlayher/netlink/nlenc
+# github.com/mdlayher/socket v0.1.1
+## explicit; go 1.17
+github.com/mdlayher/socket
+# golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
+## explicit; go 1.17
+golang.org/x/net/bpf
+# golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+## explicit
+golang.org/x/sync/errgroup
+# golang.org/x/sys v0.0.0-20220128215802-99c3d69c2c27
+## explicit; go 1.17
+golang.org/x/sys/internal/unsafeheader
+golang.org/x/sys/unix
