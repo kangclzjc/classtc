@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/florianl/go-tc v0.4.1
 	github.com/jsimonetti/rtnetlink v0.0.0-20211022192332-93da33804786
+	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
 	golang.org/x/sys v0.0.0-20220128215802-99c3d69c2c27
 )
 
@@ -13,6 +14,5 @@ require (
 	github.com/josharian/native v1.0.0 // indirect
 	github.com/mdlayher/netlink v1.6.0 // indirect
 	github.com/mdlayher/socket v0.1.1 // indirect
-	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 )

@@ -1,13 +1,33 @@
 package main
 
+import (
+	"bufio"
+	"encoding/binary"
+	"fmt"
+	"net"
+	"os"
+	"strconv"
+	"strings"
 
-import "fmt"
-import "github.com/florianl/go-tc"
-import "os"
-import "net"
-import "github.com/jsimonetti/rtnetlink"
-import "golang.org/x/sys/unix"
-import "github.com/florianl/go-tc/core"
+	"github.com/florianl/go-tc"
+	"github.com/florianl/go-tc/core"
+	"github.com/jsimonetti/rtnetlink"
+	"golang.org/x/net/nettest"
+	"golang.org/x/sys/unix"
+)
+
+const (
+	file  = "/proc/net/route"
+	line  = 1    // line containing the gateway addr. (first line: 0)
+	sep   = "\t" // field separator
+	field = 2    // field containing hex gateway address (first field: 0)
+)
+
+var defaultRoute = [4]byte{0, 0, 0, 0}
+
+func getRoutedInterface() (*net.Interface, error) {
+	return nettest.RoutedInterface("ip", net.FlagUp|net.FlagBroadcast)
+}
 
 // setupDummyInterface installs a temporary dummy interface
 func setupDummyInterface(iface string) (*rtnetlink.Conn, error) {
@@ -123,7 +143,7 @@ func ExampleTbf() {
 		fmt.Printf("%20s\t%-11s\n", iface.Name, qdisc.Kind)
 	}
 }
- 
+
 func main() {
 	rtnl, err := tc.Open(&tc.Config{})
 	if err != nil {
@@ -149,5 +169,48 @@ func main() {
 			return
 		}
 		fmt.Printf("%20s\t%s\n", iface.Name, qdisc.Kind)
+	}
+
+	// rifs := nettest.RoutedInterface("ip", net.FlagUp|net.FlagBroadcast)
+	// if rifs != nil {
+	// 	fmt.Println("Routed interface is ", rifs.HardwareAddr.String())
+	// 	fmt.Println("Flags are", rifs.Flags.String())
+	// }
+	fmt.Println(getRoutedInterface())
+
+	file, err := os.Open(file)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+
+		// jump to line containing the agteway address
+		for i := 0; i < line; i++ {
+			scanner.Scan()
+		}
+
+		// get field containing gateway address
+		tokens := strings.Split(scanner.Text(), sep)
+		fmt.Println(tokens[0])
+		gatewayHex := "0x" + tokens[field]
+
+		// cast hex address to uint32
+		d, _ := strconv.ParseInt(gatewayHex, 0, 64)
+		d32 := uint32(d)
+
+		// make net.IP address from uint32
+		ipd32 := make(net.IP, 4)
+		binary.LittleEndian.PutUint32(ipd32, d32)
+		fmt.Printf("%T --> %[1]v\n", ipd32)
+
+		// format net.IP to dotted ipV4 string
+		ip := net.IP(ipd32).String()
+		fmt.Printf("%T --> %[1]v\n", ip)
+
+		// exit scanner
+		break
 	}
 }
