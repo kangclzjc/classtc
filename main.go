@@ -89,7 +89,7 @@ func ExampleTbf() {
 	burst := uint32(0x500000)
 
 	qdisc := tc.Object{
-		tc.Msg{
+		Msg: tc.Msg{
 			Family:  unix.AF_UNSPEC,
 			Ifindex: uint32(devID.Index),
 			Handle:  core.BuildHandle(tc.HandleRoot, 0x0),
@@ -97,7 +97,7 @@ func ExampleTbf() {
 			Info:    0,
 		},
 
-		tc.Attribute{
+		Attribute: tc.Attribute{
 			Kind: "tbf",
 			Tbf: &tc.Tbf{
 				Parms: &tc.TbfQopt{
@@ -153,35 +153,31 @@ func getDefaultNIC() string {
 
 	var eth0 string
 	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
+	scanner.Scan()
 
-		// jump to line containing the gateway address
-		for i := 0; i < line; i++ {
-			scanner.Scan()
-		}
-
-		// get field containing gateway address
-		tokens := strings.Split(scanner.Text(), sep)
-		eth0 = tokens[0]
-		fmt.Println(tokens[0])
-		gatewayHex := "0x" + tokens[field]
-
-		// cast hex address to uint32
-		d, _ := strconv.ParseInt(gatewayHex, 0, 64)
-		d32 := uint32(d)
-
-		// make net.IP address from uint32
-		ipd32 := make(net.IP, 4)
-		binary.LittleEndian.PutUint32(ipd32, d32)
-		fmt.Printf("%T --> %[1]v\n", ipd32)
-
-		// format net.IP to dotted ipV4 string
-		ip := net.IP(ipd32).String()
-		fmt.Printf("%T --> %[1]v\n", ip)
-
-		// exit scanner
-		break
+	// jump to line containing the gateway address
+	for i := 0; i < line; i++ {
+		scanner.Scan()
 	}
+
+	// get field containing gateway address
+	tokens := strings.Split(scanner.Text(), sep)
+	eth0 = tokens[0]
+	fmt.Println(tokens[0])
+	gatewayHex := "0x" + tokens[field]
+
+	// cast hex address to uint32
+	d, _ := strconv.ParseInt(gatewayHex, 0, 64)
+	d32 := uint32(d)
+
+	// make net.IP address from uint32
+	ipd32 := make(net.IP, 4)
+	binary.LittleEndian.PutUint32(ipd32, d32)
+	fmt.Printf("%T --> %[1]v\n", ipd32)
+
+	// format net.IP to dotted ipV4 string
+	ip := net.IP(ipd32).String()
+	fmt.Printf("%T --> %[1]v\n", ip)
 	return eth0
 }
 
