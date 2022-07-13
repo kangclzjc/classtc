@@ -3,7 +3,6 @@ module hello/tc
 go 1.18
 
 require (
-	github.com/florianl/go-tc v0.4.1
 	github.com/jsimonetti/rtnetlink v0.0.0-20211022192332-93da33804786
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
 	golang.org/x/sys v0.0.0-20220128215802-99c3d69c2c27
