@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"time"
 
@@ -13,6 +14,23 @@ type info struct {
 	iface string
 	bw    uint64
 	sec   int64
+}
+
+func SafeQdiscList(link netlink.Link) ([]netlink.Qdisc, error) {
+	qdiscs, err := netlink.QdiscList(link)
+	if err != nil {
+		return nil, err
+	}
+	result := []netlink.Qdisc{}
+	for _, qdisc := range qdiscs {
+		// filter out pfifo_fast qdiscs because
+		// older kernels don't return them
+		_, pfifo := qdisc.(*netlink.PfifoFast)
+		if !pfifo {
+			result = append(result, qdisc)
+		}
+	}
+	return result, nil
 }
 
 func main() {
@@ -28,6 +46,14 @@ func main() {
 	}
 	log.Println("htb test start")
 
+	qdiscs, err := SafeQdiscList(l)
+	if err != nil {
+		return
+	}
+
+	for _, qdisc := range qdiscs {
+		fmt.Println("sdfdsf", qdisc)
+	}
 	// qdisc
 	// tc qdisc add dev lo root handle 1:0 htb default 1
 	attrs := netlink.QdiscAttrs{
@@ -38,7 +64,7 @@ func main() {
 	qdisc := netlink.NewHtb(attrs)
 	err = netlink.QdiscAdd(qdisc)
 	if err != nil {
-		log.Fatalf("QdiskAdd error: %s\n", err)
+		log.Fatalf("QdiscAdd error: %s\n", err)
 	}
 
 	// htb parent class
@@ -97,7 +123,7 @@ func main() {
 		log.Printf("failed to add filter. Reason:%s", err)
 	}
 
-	qdiscs, err := netlink.QdiscList(l)
+	qdiscs, err = netlink.QdiscList(l)
 	if err != nil {
 		log.Fatal(err)
 	}
