@@ -1,13 +1,30 @@
 package main
 
 import (
+	"bufio"
+	"encoding/binary"
 	"flag"
+	"fmt"
 	"log"
+	"net"
+	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/vishvananda/netlink"
+	"golang.org/x/net/nettest"
 	"golang.org/x/sys/unix"
 )
+
+const (
+	file  = "/proc/net/route"
+	line  = 1    // line containing the gateway addr. (first line: 0)
+	sep   = "\t" // field separator
+	field = 2    // field containing hex gateway address (first field: 0)
+)
+
+var defaultRoute = [4]byte{0, 0, 0, 0}
 
 type info struct {
 	iface string
@@ -30,6 +47,47 @@ func SafeQdiscList(link netlink.Link) ([]netlink.Qdisc, error) {
 		}
 	}
 	return result, nil
+}
+
+func getDefaultNIC() string {
+	file, err := os.Open(file)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer file.Close()
+
+	var eth0 string
+	scanner := bufio.NewScanner(file)
+	scanner.Scan()
+
+	// jump to line containing the gateway address
+	for i := 0; i < line; i++ {
+		scanner.Scan()
+	}
+
+	// get field containing gateway address
+	tokens := strings.Split(scanner.Text(), sep)
+	eth0 = tokens[0]
+	fmt.Println(tokens[0])
+	gatewayHex := "0x" + tokens[field]
+
+	// cast hex address to uint32
+	d, _ := strconv.ParseInt(gatewayHex, 0, 64)
+	d32 := uint32(d)
+
+	// make net.IP address from uint32
+	ipd32 := make(net.IP, 4)
+	binary.LittleEndian.PutUint32(ipd32, d32)
+	fmt.Printf("%T --> %[1]v\n", ipd32)
+
+	// format net.IP to dotted ipV4 string
+	ip := net.IP(ipd32).String()
+	fmt.Printf("%T --> %[1]v\n", ip)
+	return eth0
+}
+
+func getRoutedInterface() (*net.Interface, error) {
+	return nettest.RoutedInterface("ip", net.FlagUp|net.FlagBroadcast)
 }
 
 func main() {
@@ -148,4 +206,6 @@ func main() {
 	//}
 	log.Println("Qdisc delete done")
 	log.Println("Qdisc test end")
+	log.Println(getDefaultNIC())
+	log.Println(getRoutedInterface())
 }
