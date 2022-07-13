@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"time"
 
@@ -51,20 +50,31 @@ func main() {
 		return
 	}
 
+	var htb *netlink.Htb
+	var hasHtb bool = false
 	for _, qdisc := range qdiscs {
-		fmt.Println("sdfdsf", qdisc)
+		log.Printf("qdisc is %s\n", qdisc)
+
+		h, isHTB := qdisc.(*netlink.Htb)
+		if isHTB {
+			htb = h
+			hasHtb = true
+			break
+		}
 	}
-	// qdisc
-	// tc qdisc add dev lo root handle 1:0 htb default 1
-	attrs := netlink.QdiscAttrs{
-		LinkIndex: l.Attrs().Index,
-		Handle:    netlink.MakeHandle(1, 0),
-		Parent:    netlink.HANDLE_ROOT,
-	}
-	qdisc := netlink.NewHtb(attrs)
-	err = netlink.QdiscAdd(qdisc)
-	if err != nil {
-		log.Fatalf("QdiscAdd error: %s\n", err)
+	if !hasHtb {
+		// qdisc
+		// tc qdisc add dev lo root handle 1:0 htb default 1
+		attrs := netlink.QdiscAttrs{
+			LinkIndex: l.Attrs().Index,
+			Handle:    netlink.MakeHandle(1, 0),
+			Parent:    netlink.HANDLE_ROOT,
+		}
+		htb = netlink.NewHtb(attrs)
+		err = netlink.QdiscAdd(htb)
+		if err != nil {
+			log.Fatalf("QdiscAdd error: %s\n", err)
+		}
 	}
 
 	// htb parent class
@@ -132,10 +142,10 @@ func main() {
 	time.Sleep(time.Duration(i.sec) * time.Second)
 
 	// tc qdisc del dev lo root
-	err = netlink.QdiscDel(qdisc)
-	if err != nil {
-		log.Fatalf("QdiskDel error: %s", err)
-	}
+	//err = netlink.QdiscDel(htb)
+	//if err != nil {
+	//	log.Fatalf("QdiskDel error: %s", err)
+	//}
 	log.Println("Qdisc delete done")
 	log.Println("Qdisc test end")
 }
