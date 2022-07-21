@@ -173,21 +173,17 @@ func main() {
 	filterattrs := netlink.FilterAttrs{
 		LinkIndex: l.Attrs().Index,
 		Parent:    netlink.MakeHandle(1, 0),
-		Handle:    netlink.MakeHandle(0, 1024),
+		Handle:    netlink.MakeHandle(1, 5),
 		Priority:  49152,
 		Protocol:  unix.ETH_P_ALL,
 	}
 
-	fwattrs := netlink.FilterFwAttrs{
-		ClassId: netlink.MakeHandle(1, 5),
+	filter := netlink.GenericFilter{
+		filterattrs,
+		"cgroup",
 	}
 
-	filter, err := netlink.NewFw(filterattrs, fwattrs)
-	if err != nil {
-		log.Printf("failed to create NewFw(). Reason:%s", err)
-	}
-
-	if err := netlink.FilterAdd(filter); err != nil {
+	if err := netlink.FilterAdd(&filter); err != nil {
 		log.Printf("failed to add filter. Reason:%s", err)
 	}
 
